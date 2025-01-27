@@ -2,22 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla App Template</title>
+    <title>Gallery</title>
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body>
-    <load src="./partials/header.html" icon-path="img/sprite.svg#logo" />
-
     <main>
-      <!-- Loads the specified .html file -->
-      <load src="./partials/vite-promo.html" />
-      <load src="./partials/badges.html" />
+      <section class="gallery-section">
+        <h1 class="visually-hidden">Gallery</h1>
+        <div class="container">
+          <form
+            class="gallery-form js-search-form"
+            autocomplete="off"
+            novalidate
+          >
+            <input
+              class="search-input js-search-input"
+              type="text"
+              name="search"
+              required
+            />
+            <button class="search-btn" type="submit">Search</button>
+          </form>
+          <ul class="gallery js-gallery"></ul>
+        </div>
+        <div id="pre-loader" class="loader visually-hidden">
+          <img src="./img/Spin@1x-1.0s-200px-200px.gif" alt="loader" />
+        </div>
+      </section>
     </main>
 
-    <load src="./partials/footer.html" />
-
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./main.js" defer></script>
   </body>
 </html>
