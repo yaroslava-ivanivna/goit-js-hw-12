@@ -14,66 +14,72 @@ function hideLoader() {
 
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryList = document.querySelector('.js-gallery');
+const loadMoreBtnEl = document.querySelector('.load-more-btn');
 
 import { createGalleryCardTemplate } from './js/render-function';
 import { fetchPhotosByUserQuery } from './js/pixabay-api';
 
 let lightbox;
-const onSearchFormSubmit = event => {
+let page = 1;
+
+const onSearchFormSubmit = async event => {
   event.preventDefault();
-
   showLoader();
+  try {
+    const searchFormValue = event.currentTarget.elements.search.value.trim();
 
-  const searchFormValue = event.currentTarget.elements.search.value.trim();
-
-  if (searchFormValue === '') {
-    hideLoader();
-    iziToast.error({
-      title: 'Error',
-      message:
-        'Sorry, there are no images matching your search query. Please try again!',
-      position: 'topRight',
-    });
-
-    return;
-  }
-
-  fetchPhotosByUserQuery(searchFormValue)
-    .then(data => {
-      if (data.total === 0) {
-        hideLoader();
-        iziToast.error({
-          title: 'Error',
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topRight',
-        });
-
-        galleryList.innerHTML = '';
-        searchFormEl.reset();
-        return;
-      }
+    if (searchFormValue === '') {
       hideLoader();
-      const galleryTemplate = data.hits
-        .map(el => createGalleryCardTemplate(el))
-        .join('');
+      iziToast.error({
+        title: 'Error',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+      });
 
-      galleryList.innerHTML = galleryTemplate;
+      return;
+    }
+    const response = await fetchPhotosByUserQuery(searchFormValue, page);
+    if (response.data.total === 0) {
+      hideLoader();
+      iziToast.error({
+        title: 'Error',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+      });
+
+      galleryList.innerHTML = '';
       searchFormEl.reset();
+      return;
+    }
+    hideLoader();
+    const galleryTemplate = response.data.hits
+      .map(el => createGalleryCardTemplate(el))
+      .join('');
 
-      if (lightbox) {
-        lightbox.refresh();
-      } else {
-        lightbox = new SimpleLightbox('.gallery a', {
-          captionsData: 'alt',
-          captionDelay: 250,
-        });
-      }
-    })
-    .catch(err => {
-      hideLoader();
-      console.error(err);
-    });
+    galleryList.innerHTML = galleryTemplate;
+    searchFormEl.reset();
+    loadMoreBtnEl.classList.remove('visually-hidden');
+
+    loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);
+
+    if (lightbox) {
+      lightbox.refresh();
+    } else {
+      lightbox = new SimpleLightbox('.gallery a', {
+        captionsData: 'alt',
+        captionDelay: 250,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    hideLoader();
+  }
 };
 
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
+
+const onLoadMoreBtnClick = event => {
+  // console.log('Hello');
+};
