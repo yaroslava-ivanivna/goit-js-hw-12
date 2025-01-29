@@ -4,14 +4,6 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const loader = document.querySelector('.loader');
-function showLoader() {
-  loader.classList.remove('visually-hidden');
-}
-
-function hideLoader() {
-  loader.classList.add('visually-hidden');
-}
-
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryList = document.querySelector('.js-gallery');
 const loadMoreBtnEl = document.querySelector('.load-more-btn');
@@ -21,31 +13,57 @@ import { fetchPhotosByUserQuery } from './js/pixabay-api';
 
 let lightbox;
 let page = 1;
+const perPage = 15;
+let totalHits = 0;
+let searchFormValue = '';
+
+function showLoader() {
+  loader.classList.remove('visually-hidden');
+}
+
+function hideLoader() {
+  loader.classList.add('visually-hidden');
+}
+
+function smoothScroll() {
+  const galleryCard = document.querySelector('.gallery-card');
+  if (galleryCard) {
+    const cardHeight = galleryCard.getBoundingClientRect().height;
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+  }
+}
 
 const onSearchFormSubmit = async event => {
   event.preventDefault();
   showLoader();
-  try {
-    const searchFormValue = event.currentTarget.elements.search.value.trim();
 
-    if (searchFormValue === '') {
+  try {
+    searchFormValue = event.currentTarget.elements.search.value.trim();
+
+    if (!searchFormValue) {
       hideLoader();
       iziToast.error({
         title: 'Error',
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
+        message: 'Please enter a search query!',
         position: 'topRight',
       });
-
       return;
     }
+
+    page = 1;
+    loadMoreBtnEl.classList.add('visually-hidden');
+
     const response = await fetchPhotosByUserQuery(searchFormValue, page);
-    if (response.data.total === 0) {
+    totalHits = response.data.totalHits;
+
+    if (totalHits === 0) {
       hideLoader();
       iziToast.error({
         title: 'Error',
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
+        message: 'Sorry, no images found. Try another search!',
         position: 'topRight',
       });
 
@@ -53,16 +71,14 @@ const onSearchFormSubmit = async event => {
       searchFormEl.reset();
       return;
     }
+
     hideLoader();
-    const galleryTemplate = response.data.hits
+
+    galleryList.innerHTML = response.data.hits
       .map(el => createGalleryCardTemplate(el))
       .join('');
 
-    galleryList.innerHTML = galleryTemplate;
     searchFormEl.reset();
-    loadMoreBtnEl.classList.remove('visually-hidden');
-
-    loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);
 
     if (lightbox) {
       lightbox.refresh();
@@ -72,14 +88,52 @@ const onSearchFormSubmit = async event => {
         captionDelay: 250,
       });
     }
+
+    if (totalHits > perPage) {
+      loadMoreBtnEl.classList.remove('visually-hidden');
+    } else {
+      loadMoreBtnEl.classList.add('visually-hidden');
+    }
   } catch (err) {
     console.log(err);
     hideLoader();
+    iziToast.error({
+      title: 'Error',
+      message: 'Something went wrong. Please try again later.',
+      position: 'topRight',
+    });
+  }
+};
+
+const onLoadMoreBtnClick = async () => {
+  try {
+    page++;
+    const response = await fetchPhotosByUserQuery(searchFormValue, page);
+
+    galleryList.insertAdjacentHTML(
+      'beforeend',
+      response.data.hits.map(el => createGalleryCardTemplate(el)).join('')
+    );
+
+    lightbox.refresh();
+
+    if (page * perPage >= totalHits) {
+      loadMoreBtnEl.classList.add('visually-hidden');
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    iziToast.error({
+      title: 'Error',
+      message: 'Something went wrong while loading more images.',
+      position: 'topRight',
+    });
   }
 };
 
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
-
-const onLoadMoreBtnClick = event => {
-  // console.log('Hello');
-};
+loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);

@@ -101,7 +101,7 @@
   justify-content: center;
   opacity: 0;
 }
-.loader:not(.hidden) {
+.loader:not(.visually-hidden) {
   opacity: 1;
 }
 .load-more-btn {
