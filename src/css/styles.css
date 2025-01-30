@@ -6,10 +6,12 @@
 /* Sections style */
 @import url('./vite-promo.css');
 @import url('./badges.css');
-.hidden {
-  display: none;
-}
+
 .visually-hidden {
+  visibility: hidden;
+}
+
+.hidden {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -20,6 +22,7 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
 .gallery-form {
   display: flex;
   flex-direction: row;
@@ -94,20 +97,41 @@
   flex-direction: column;
 }
 
-.loader {
-  background: url(/src/img/Spin@1x-1.0s-200px-200px.gif) no-repeat center center;
-  background-size: 10%;
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  gap: 10px;
+}
+.loader-container:not(.visually-hidden) {
+  visibility: visible;
+}
+.loader-text:not(.visually-hidden) {
+  visibility: visible;
+}
+.load-more-btn:not(.visually-hidden) {
+  visibility: visible;
+}
+
+.loader-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
   display: flex;
   justify-content: center;
-  opacity: 0;
 }
-.loader:not(.visually-hidden) {
-  opacity: 1;
+
+.loader-img {
+  width: 80px;
+  height: 80px;
 }
+
 .load-more-btn {
   display: flex;
   justify-self: center;
-  margin-top: 32px;
+  margin-top: 30px;
   width: 125px;
   height: 40px;
   padding: 8px 16px 8px 22px;

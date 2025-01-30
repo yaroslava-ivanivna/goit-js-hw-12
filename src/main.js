@@ -3,7 +3,8 @@ import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const loader = document.querySelector('.loader');
+const loaderText = document.querySelector('.loader-text');
+const loaderContainer = document.querySelector('.loader-container');
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryList = document.querySelector('.js-gallery');
 const loadMoreBtnEl = document.querySelector('.load-more-btn');
@@ -18,17 +19,25 @@ let totalHits = 0;
 let searchFormValue = '';
 
 function showLoader() {
-  loader.classList.remove('visually-hidden');
+  loaderContainer.classList.remove('hidden');
 }
 
 function hideLoader() {
-  loader.classList.add('visually-hidden');
+  loaderContainer.classList.add('hidden');
+}
+
+function showLoaderText() {
+  loaderText.classList.remove('visually-hidden');
+}
+
+function hideLoaderText() {
+  loaderText.classList.add('visually-hidden');
 }
 
 function smoothScroll() {
-  const galleryCard = document.querySelector('.gallery-card');
-  if (galleryCard) {
-    const cardHeight = galleryCard.getBoundingClientRect().height;
+  const firstGalleryItem = document.querySelector('.gallery-card');
+  if (firstGalleryItem) {
+    const cardHeight = firstGalleryItem.getBoundingClientRect().height;
     window.scrollBy({
       top: cardHeight * 2,
       behavior: 'smooth',
@@ -106,6 +115,11 @@ const onSearchFormSubmit = async event => {
 };
 
 const onLoadMoreBtnClick = async () => {
+  loadMoreBtnEl.classList.add('visually-hidden');
+  showLoaderText();
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   try {
     page++;
     const response = await fetchPhotosByUserQuery(searchFormValue, page);
@@ -116,6 +130,8 @@ const onLoadMoreBtnClick = async () => {
     );
 
     lightbox.refresh();
+    smoothScroll();
+    loadMoreBtnEl.classList.remove('visually-hidden');
 
     if (page * perPage >= totalHits) {
       loadMoreBtnEl.classList.add('visually-hidden');
@@ -132,6 +148,9 @@ const onLoadMoreBtnClick = async () => {
       message: 'Something went wrong while loading more images.',
       position: 'topRight',
     });
+  } finally {
+    hideLoader();
+    hideLoaderText();
   }
 };
 
